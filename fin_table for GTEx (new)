@@ -1,0 +1,32 @@
+library(CePa)
+library(dplyr)
+library(org.Hs.eg.db)
+
+setwd("C:/Users/nt301/Downloads")
+df = read.gct(file = 'GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_reads.gct')
+df = as.data.frame(df) #or as.matrix()?
+
+#but colnames of df contains only sample id, i need tissue type 
+
+#extract colnames GTEx df - SAMPID
+#col_df_ 17382 1 "SAMPID"
+col_df = gsub(".", "-", colnames(df), fixed = TRUE)
+col_df_ = as.data.frame(col_df)
+colnames(col_df_) = 'SAMPID'
+
+#extract SAMPID, SMTS, SMTSISCH from annotation
+#an_ 22951 3 "SAMPID","SMTS", "SMTSISCH"
+an = read.delim("GTEx_Analysis_v8_Annotations_SampleAttributesDS.txt", header = TRUE, sep = "\t")
+an_ = an[,c("SAMPID","SMTS","SMTSISCH")]
+
+#join SAMPID from GTEx and SAMPID, SMTS, SMTSISCH from annotation
+#col_df__ 17382 3 "SAMPID","SMTS","SMTSISCH"
+col_df__ = left_join(col_df_, an_)
+
+#transpose 
+#col_df__ 3 17382
+col_df__ = t(col_df__)
+colnames(col_df__) = col_df__[1,]
+
+#rbind read counts and "SAMPID","SMTS","SMTSISCH"
+fin_df = rbind(df, col_df__)
