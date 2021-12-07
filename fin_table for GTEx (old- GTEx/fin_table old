@@ -1,3 +1,8 @@
+library(CePa)
+library(dplyr)
+library(org.Hs.eg.db)
+library(preprocessCore)
+
 setwd("C:/Users/nt301/Downloads")
 df = read.gct(file = 'GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_reads.gct')
 df = as.matrix(df)
@@ -43,8 +48,16 @@ GTEx = Reduce(function(x, y) merge(x, y, all=TRUE), list(Colon, Stomach, Lung,
 colnames(GTEx) = gsub("\\.[0-9]*$", "", colnames(GTEx))
 write.csv(GTEx, "preGTEx.csv")
 
-------------------------------------add normalization-------------------------------
+------------------------------------normalization-------------------------------
 ...
+rownames(GTEx) = GTEx$symbol
+GTEx = GTEx + 1
+normalized_counts = normalize.quantiles(as.matrix(GTEx),copy=TRUE)
+#dim(normalized_counts)
+colnames(normalized_counts) = colnames(GTEx)
+rownames(normalized_counts) = rownames(GTEx)
+normalized_counts_log = log10(normalized_counts)
+
 
 ------------------------------------dendro-------------------------------------------
 GTEx = read.csv("preGTEx.csv", fill = T)
