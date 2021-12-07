@@ -1,0 +1,56 @@
+setwd("C:/Users/nt301/Downloads")
+df = read.gct(file = 'GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_reads.gct')
+df = as.matrix(df)
+#but colnames df contains only sample id, i need tissue type 
+
+#col_df_ 17382 1 "SAMPID"
+col_df = gsub(".", "-", colnames(df), fixed = TRUE)
+col_df_ = as.data.frame(col_df)
+colnames(col_df_) = 'SAMPID'
+
+#an_ 22951 2 "SAMPID","SMTS"
+an = read.delim("GTEx_Analysis_v8_Annotations_SampleAttributesDS.txt", header = TRUE, sep = "\t")
+#an_ = as.data.frame(rownames(an))
+an_ = an[,c("SAMPID","SMTS")]
+
+#col_df__ 17382 2 "SAMPID","SMTS"
+col_df__ = left_join(col_df_, an_)
+
+#new colnames
+colnames(df) = col_df__[,2]
+
+find10randomGTEx = function(tissue,type){
+  c = data.frame(df[,which(colnames(df)==tissue)])
+  c = sample(c, 10, replace = F)
+  colnames(c)[1:10] = rep(type, 10)
+  c$symbol = rownames(c)
+  return(c)
+}
+set.seed(1)
+
+Colon = find10randomGTEx('Colon','C-GTEx')
+Stomach = find10randomGTEx('Stomach','G-GTEx')
+Lung = find10randomGTEx('Lung','Lu-GTEx')
+Pancreas = find10randomGTEx('Pancreas','P-GTEx')
+Kidney = find10randomGTEx('Kidney','K-GTEx')
+Brain = find10randomGTEx('Brain','NS-GTEx')
+Blood = find10randomGTEx('Blood','B-GTEx')
+Thyroid = find10randomGTEx('Thyroid','Th-GTEx')
+
+GTEx = Reduce(function(x, y) merge(x, y, all=TRUE), list(Colon, Stomach, Lung,
+                                                      Pancreas, Kidney,
+                                                      Brain, Blood, Thyroid))
+colnames(GTEx) = gsub("\\.[0-9]*$", "", colnames(GTEx))
+write.csv(GTEx, "preGTEx.csv")
+
+------------------------------------dendro-------------------------------------------
+GTEx = read.csv("preGTEx.csv", fill = T)
+colnames(GTEx)
+rownames(GTEx) = GTEx$symbol
+GTEx$X = NULL
+
+fin = t(GTEx)
+dd <- dist(fin, method = "euclidean")
+col_cluster = hclust(dd, method = "ward.D2")
+dend = as.dendrogram(col_cluster)
+plot(dend, axes=FALSE)
