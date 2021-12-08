@@ -34,3 +34,31 @@ colnames(ANNOT) = ANNOT[1,]
 
 #rbind GTEx gene read counts [DF] and [ANNOT]
 DF.ANNOT = rbind(DF, ANNOT)
+
+###FIND 10 RANDOM SAMPLES OF EACH TISSUE ('Colon', 'Lung'..) AND ASSIGN A TYPE/LABEL FOR EACH SAMPLE ('C-GTEx', 'Lu-GTEx')
+
+find10randomGTEx = function(tissue, type){
+  c = data.frame(DF.ANNOT[,which(DF.ANNOT["SMTS",]==tissue)])
+  c = sample(c, 10, replace = F)
+  c$ensembl = rownames(c)
+  colnames(c)[1:10] = rep(type, 10)
+  return(c)
+}
+
+set.seed(1)
+
+Colon = find10randomGTEx('Colon','C-GTEx')
+Stomach = find10randomGTEx('Stomach','G-GTEx')
+Lung = find10randomGTEx('Lung','Lu-GTEx')
+Pancreas = find10randomGTEx('Pancreas','P-GTEx')
+Kidney = find10randomGTEx('Kidney','K-GTEx')
+Brain = find10randomGTEx('Brain','NS-GTEx')
+Blood = find10randomGTEx('Blood','B-GTEx')
+Thyroid = find10randomGTEx('Thyroid','Th-GTEx')
+
+#create [GTEmini] of 8 tissue type x 10 samples
+GTEmini = Reduce(function(x, y) merge(x, y, all=TRUE), list(Colon, Stomach, Lung,
+                                                      Pancreas, Kidney,
+                                                      Brain, Blood, Thyroid))
+                                                      
+#colnames(GTEmini) = gsub("\\.[0-9]*$", "", colnames(GTEmini)) #not sure if this is needed
