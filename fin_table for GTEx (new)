@@ -12,7 +12,7 @@ colnames(DF) = gsub(".", "-", colnames(DF), fixed = TRUE)
 
 #but DF contains only sample id, I need annotation 
 
-#extract [SAMPID, SMTS, SMTSISCH] from annotation, and there are more IDs - 22951 in annotation vs 17382 in GTEx DF
+#extract [SAMPID.SMTS.SMTSISCH] from annotation, and there are more IDs - 22951 in annotation vs 17382 in GTEx DF
 annotation = read.delim("GTEx_Analysis_v8_Annotations_SampleAttributesDS.txt", header = TRUE, sep = "\t")
 SAMPID.SMTS.SMTSISCH = annotation[,c("SAMPID","SMTS","SMTSISCH")]
 #SAMPID.SMTS.SMTSISCH 22951 obs. 3 var. | colnames - "SAMPID","SMTS", "SMTSISCH"
