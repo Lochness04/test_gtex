@@ -3,30 +3,34 @@ library(dplyr)
 library(org.Hs.eg.db)
 
 setwd("C:/Users/nt301/Downloads")
-df = read.gct(file = 'GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_reads.gct')
-df = as.data.frame(df) #or as.matrix()?
 
-#but colnames of df contains only sample id, i need tissue type 
+#GTEx gene read count [DF]
+DF = read.gct(file = 'GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_reads.gct')
+DF = as.data.frame(DF) #or as.matrix()?
+colnames(DF) = gsub(".", "-", colnames(DF), fixed = TRUE)
+#DF ~56000 obs. 17382 var. | colnames - 17382 IDs
 
-#extract colnames GTEx df - SAMPID
-#col_df_ 17382 1 "SAMPID"
-col_df = gsub(".", "-", colnames(df), fixed = TRUE)
-col_df_ = as.data.frame(col_df)
-colnames(col_df_) = 'SAMPID'
+#but DF contains only sample id, I need annotation 
 
-#extract SAMPID, SMTS, SMTSISCH from annotation
-#an_ 22951 3 "SAMPID","SMTS", "SMTSISCH"
-an = read.delim("GTEx_Analysis_v8_Annotations_SampleAttributesDS.txt", header = TRUE, sep = "\t")
-an_ = an[,c("SAMPID","SMTS","SMTSISCH")]
+#extract [SAMPID] - colnames of GTEx df
+SAMPID = gsub(".", "-", colnames(DF), fixed = TRUE)
+SAMPID = as.data.frame(SAMPID)
+colnames(SAMPID) = 'SAMPID'
+#SAMPID 17382 obs. 1 var. | colnames - "SAMPID"
 
-#join SAMPID from GTEx and SAMPID, SMTS, SMTSISCH from annotation
-#col_df__ 17382 3 "SAMPID","SMTS","SMTSISCH"
-col_df__ = left_join(col_df_, an_)
+#extract [SAMPID, SMTS, SMTSISCH] from annotation, and there are more IDs - 22951 vs 17382
+annotation = read.delim("GTEx_Analysis_v8_Annotations_SampleAttributesDS.txt", header = TRUE, sep = "\t")
+SAMPID.SMTS.SMTSISCH = annotation[,c("SAMPID","SMTS","SMTSISCH")]
+#SAMPID.SMTS.SMTSISCH 22951 obs. 3 var. | colnames - "SAMPID","SMTS", "SMTSISCH"
 
-#transpose 
-#col_df__ 3 17382
-col_df__ = t(col_df__)
-colnames(col_df__) = col_df__[1,]
+#join [SAMPID] from GTEx DF and [SAMPID, SMTS, SMTSISCH] from annotation > [ANNOT]
+ANNOT = left_join(SAMPID, SAMPID.SMTS.SMTSISCH)
+#ANNOT 17382 obs. 3 var. | colnames "SAMPID","SMTS","SMTSISCH"
 
-#rbind read counts and "SAMPID","SMTS","SMTSISCH"
-fin_df = rbind(df, col_df__)
+#transpose [ANNOT]
+ANNOT = t(ANNOT)
+colnames(ANNOT) = ANNOT[1,]
+#ANNOT 3 obs. 17382 var. | colnames - 17382 IDs
+
+#rbind GTEx gene read counts [DF] and [ANNOT]
+DF.ANNOT = rbind(DF, ANNOT)
