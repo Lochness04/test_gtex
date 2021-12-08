@@ -1,8 +1,9 @@
 library(CePa)
 library(dplyr)
-library(org.Hs.eg.db)
 
 setwd("C:/Users/nt301/Downloads")
+
+###GTEX FULL TABLE > DF.ANNOT
 
 #GTEx gene read count [DF]
 DF = read.gct(file = 'GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_reads.gct')
@@ -35,7 +36,7 @@ colnames(ANNOT) = ANNOT[1,]
 #rbind GTEx gene read counts [DF] and [ANNOT]
 DF.ANNOT = rbind(DF, ANNOT)
 
-###FIND 10 RANDOM SAMPLES OF EACH TISSUE ('Colon', 'Lung'..) AND ASSIGN A TYPE/LABEL FOR EACH SAMPLE ('C-GTEx', 'Lu-GTEx')
+###FIND 10 RANDOM SAMPLES OF EACH TISSUE ('Colon', 'Lung'..) AND ASSIGN A TYPE/LABEL FOR EACH SAMPLE ('C-GTEx', 'Lu-GTEx') > GTEmini
 
 find10randomGTEx = function(tissue, type){
   c = data.frame(DF.ANNOT[,which(DF.ANNOT["SMTS",]==tissue)])
@@ -62,3 +63,20 @@ GTEmini = Reduce(function(x, y) merge(x, y, all=TRUE), list(Colon, Stomach, Lung
                                                       Brain, Blood, Thyroid))
                                                       
 #colnames(GTEmini) = gsub("\\.[0-9]*$", "", colnames(GTEmini)) #not sure if this is needed
+
+###NORMALIZATION > normalized_counts_log
+rownames(GTEx) = GTEx$ensembl
+GTEx$ensembl = NULL
+GTEx = GTEx + 1
+normalized_counts = normalize.quantiles(as.matrix(GTEx),copy=TRUE)
+#dim(normalized_counts)
+colnames(normalized_counts) = colnames(GTEx)
+rownames(normalized_counts) = rownames(GTEx)
+normalized_counts_log = log10(normalized_counts)
+
+###DENDRO > dend
+n = t(GTEx)
+d <- dist(n, method = "euclidean")
+col_cluster = hclust(d, method = "ward.D2")
+dend = as.dendrogram(col_cluster)
+plot(dend, axes=FALSE)
