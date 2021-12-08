@@ -63,6 +63,8 @@ GTEmini = Reduce(function(x, y) merge(x, y, all=TRUE), list(Colon, Stomach, Lung
                                                       Brain, Blood, Thyroid))
                                                       
 #colnames(GTEmini) = gsub("\\.[0-9]*$", "", colnames(GTEmini)) #not sure if this is needed
+# - "SAMPID","SMTS","SMTSISCH" rows! need a check
+GTEmini = GTEmini[-c(dim(GTEmini)[1], dim(GTEmini)[1]-1, dim(GTEmini)[1]-2),]
 
 ###NORMALIZATION > normalized_counts_log
 rownames(GTEx) = GTEx$ensembl
