@@ -7,6 +7,8 @@ setwd("C:/Users/nt301/Downloads")
 
 #GTEx gene read count [DF]
 DF = read.gct(file = 'GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_reads.gct')
+#DF = read.delim('GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_reads.gct', sep = '\t', 
+#                colClasses = c(rep("character", 2), rep("NULL", 200)),header = FALSE)
 DF = as.data.frame(DF) #or as.matrix()?
 colnames(DF) = gsub(".", "-", colnames(DF), fixed = TRUE)
 #DF ~56000 obs. 17382 var. | colnames - 17382 IDs
