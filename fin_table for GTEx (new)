@@ -59,26 +59,65 @@ Brain = find10randomGTEx('Brain','NS-GTEx')
 Blood = find10randomGTEx('Blood','B-GTEx')
 Thyroid = find10randomGTEx('Thyroid','Th-GTEx')
 
-#create [GTEmini] of 8 tissue type x 10 samples
-GTEmini = Reduce(function(x, y) merge(x, y, all=TRUE), list(Colon, Stomach, Lung,
+#create [GTEX] of 8 tissue type x 10 samples
+GTEX = Reduce(function(x, y) merge(x, y, all=TRUE), list(Colon, Stomach, Lung,
                                                       Pancreas, Kidney,
                                                       Brain, Blood, Thyroid))
                                                       
-#colnames(GTEmini) = gsub("\\.[0-9]*$", "", colnames(GTEmini)) #not sure if this is needed
+#colnames(GTEX) = gsub("\\.[0-9]*$", "", colnames(GTEX)) #not sure if this is needed
 # - "SAMPID","SMTS","SMTSISCH" rows! need a check
-GTEmini = GTEmini[-c(dim(GTEmini)[1], dim(GTEmini)[1]-1, dim(GTEmini)[1]-2),]
+GTEX = GTEX[-c(dim(GTEX)[1], dim(GTEX)[1]-1, dim(GTEX)[1]-2),]
 
-### FIN
-### TCGAnorm, TCGAtumor, GTEXnorm, OBnorm, OBtumor, NCItumor>
+### OB
+### all_data>
+### >OB
+all_data = read.table("all_data_RNAseq_11_02_s.txt")
+rownames(all_data) = all_data[,1]
+find10randomOB = function(tissue, type){
+  c = all_data[,str_detect(all_data[1,], tissue, negate = FALSE)]
+  c = sample(c, 10, replace = F)
+  colnames(c)[1:10] = rep(type, 10)
+  c$symbol = rownames(c)
+  return(c)
+}
+
+set.seed(1)
+Colon = find10randomOB('CC','Colon-Tumor-OB')
+Stomach = find10randomOB('GC','Stomach-Tumor-OB')
+Lung = find10randomOB('LuC','Lung-Tumor-OB')
+Pancreas = find10randomOB('PC','Pancreas-Tumor-OB')
+Kidney = find10randomOB('KC','Kidney-Tumor-OB')
+Brain = find10randomOB('NS','Brain-Tumor-OB')
+Blood = find10randomOB('AL','AL-Blood-Tumor-OB')
+Thyroid = find10randomOB('TC','Thyroid-Tumor-OB')
+
+OB = Reduce(function(x, y) merge(x, y, all=TRUE), list(Colon, Stomach, Lung,
+                                                            Pancreas, Kidney,
+                                                            Brain, Blood, Thyroid))
+
+hgnc_complete_set = read.delim("hgnc_complete_set.txt",header = TRUE, sep = "\t",fill = TRUE)
+symbol_ensembl = hgnc_complete_set[,c("symbol","ensembl_gene_id")]
+OB = merge(symbol_ensembl,OB,by="symbol")
+OB$symbol=NULL
+
+### FIN (by ensembl_gene_id)
+### NCI.TCGAtumor.TCGAnorm.GTEXnorm, OB>
 ### >FIN
+NCI.TCGAtumor.TCGAnorm.GTEXnorm = read.csv("FIN__.csv")
+NCI.TCGAtumor.TCGAnorm.GTEXnorm$X = NULL
+OB = read.csv("OB.csv")
+OB$X = NULL
 
-
-FIN = Reduce(function(x, y) merge(x, y), list(TCGAnorm, TCGAtumor, GTEXnorm, OBnorm, OBtumor, NCItumor))
+FIN = Reduce(function(x, y) merge(x, y), list(NCI.TCGAtumor.TCGAnorm.GTEXnorm, OB))
+FIN = FIN[-which(duplicated(FIN[,1])),]
+rownames(FIN) = FIN[,1]
+FIN$ensembl_gene_id = NULL
+colnames(FIN)= gsub('\\.[0-9]*$', '', colnames(FIN))
+colnames(FIN)= gsub('.', '-', fixed = T, colnames(FIN))
 
 ### ASSIGN COLORS FOR PLOT AND CREATE VECTOR FOR TISSUE, DATABASE, MALIGNANCY
 ### FIN>
 ### >COLORS, VECTORS
-colnames_FIN = gsub('\\.[0-9]*$', '', colnames(FIN))
 
 assign_value = function(vector,search,value){
   c = rep(0, length(vector))
@@ -100,7 +139,7 @@ tissue_color = c("#56B4E9","#D55E00","#F0E442","#0072B2","#009E73","#E69F00","#0
 vector_tissue = assign_value(colnames(FIN), tissue, tissue)
 color_tissue = assign_value(colnames(FIN), tissue, tissue_color)
 
-database = c('TCGA','GTEx','NCI','OB')
+database = c('TCGA','GTEX','NCI','OB')
 database_color = c('blue','red','yellow','grey')
 vector_database = assign_value(colnames(FIN), type, type)
 color_database = assign_value(colnames(FIN), type, type_color)
@@ -139,5 +178,12 @@ DEND = as.dendrogram(DEND)
 ### PLOT 
 ### DEND, COLORS>
 
-plot(dend, axes=FALSE)
+plot(DEND, axes=FALSE)
 colored_bars(colors = COLORS, dend = DEND)
+
+
+legend("topright", legend = c("Blood","Brain","Colon","Kidney","Lung",'Pancreas',"Stomach","Thyroid"), fill = c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", 
+                                                                                                                "#CC79A7"))
+legend("topleft", legend = c("TCGA", "GTEx", "NCI", "OB"), fill = c("blue", "red", "yellow", 'Grey'))
+
+legend("top", legend = c("Tumor", "Norm"), fill = c("violet", "chartreuse3"))
