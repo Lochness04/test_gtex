@@ -71,34 +71,52 @@ GTEmini = GTEmini[-c(dim(GTEmini)[1], dim(GTEmini)[1]-1, dim(GTEmini)[1]-2),]
 ### FIN
 ### TCGAnorm, TCGAtumor, GTEXnorm, OBnorm, OBtumor, NCItumor>
 ### >FIN
+
+
 FIN = Reduce(function(x, y) merge(x, y), list(TCGAnorm, TCGAtumor, GTEXnorm, OBnorm, OBtumor, NCItumor))
 
-### TISSUE AND TYPE
+### ASSIGN COLORS FOR PLOT AND CREATE VECTOR FOR TISSUE, DATABASE, MALIGNANCY
 ### FIN>
-### >COLORS
+### >COLORS, VECTORS
 colnames_FIN = gsub('\\.[0-9]*$', '', colnames(FIN))
 
-color_tissue = rep(0, dim(FIN)[2])
-color_tissue[which(str_detect(colnames_FIN, "Colon", negate = FALSE))] = "#56B4E9"
-color_tissue[which(str_detect(colnames_FIN, "Stomach", negate = FALSE))] = "#D55E00"
-color_tissue[which(str_detect(colnames_FIN, "Lung", negate = FALSE))] = "#F0E442"
-color_tissue[which(str_detect(colnames_FIN, "Pancreas", negate = FALSE))] = "#0072B2"
-color_tissue[which(str_detect(colnames_FIN, "Kidney", negate = FALSE))] = "#009E73"
-color_tissue[which(str_detect(colnames_FIN, "Brain", negate = FALSE))] = "#E69F00"
-color_tissue[which(str_detect(colnames_FIN, "Blood", negate = FALSE))] = "#000000"
-color_tissue[which(str_detect(colnames_FIN, "Thyroid", negate = FALSE))] = "#CC79A7"
+assign_value = function(vector,search,value){
+  c = rep(0, length(vector))
+  for (i in 1:length(vector)){
+    for (j in 1:length(search)){
+      if (str_detect(vector[i], search[j], negate = FALSE)){
+        c[i] = value[j]
+      }
+      else{
+        next
+      }
+    }
+  }
+  return(c)
+}
 
-color_type = rep(0, dim(FIN)[2])
-color_type[which(str_detect(colnames_FIN, "Tumor-TCGA", negate = FALSE))] = "blue"
-color_type[which(str_detect(colnames_FIN, "Norm-TCGA", negate = FALSE))] = "green"
-color_type[which(str_detect(colnames_FIN, "Norm-GTEX", negate = FALSE))] = "red"
-color_type[which(str_detect(colnames_FIN, "NCI", negate = FALSE))] = "yellow"
-color_type[which(str_detect(colnames_FIN, "Norm-OB", negate = FALSE))] = "grey"
-color_type[which(str_detect(colnames_FIN, "Tumor-OB", negate = FALSE))] = "pink"
+tissue = c('Colon','Stomach',"Lung","Pancreas","Kidney","Brain","Blood","Thyroid")
+tissue_color = c("#56B4E9","#D55E00","#F0E442","#0072B2","#009E73","#E69F00","#000000","#CC79A7")
+vector_tissue = assign_value(colnames(FIN), tissue, tissue)
+color_tissue = assign_value(colnames(FIN), tissue, tissue_color)
 
-COLORS = c(color_tissue, color_type)
-colnames(COLORS) = c('Tissue','Database')
-COLORS = as.matrix(COLORS)
+database = c('TCGA','GTEx','NCI','OB')
+database_color = c('blue','red','yellow','grey')
+vector_database = assign_value(colnames(FIN), type, type)
+color_database = assign_value(colnames(FIN), type, type_color)
+
+malignancy = c('Tumor','Norm')
+malignancy_color = c("violet",'chartreuse3')
+vector_malignancy = assign_value(colnames(FIN), malignancy, malignancy)
+color_malignancy = assign_value(colnames(FIN), malignancy, malignancy_color)
+
+COLORS = c(color_tissue, color_database, color_malignancy)
+COLORS = matrix(COLORS, ncol = 3)
+colnames(COLORS) = c('Tissue','Database','Malignancy')
+
+VECTORS = c(vector_tissue, vector_database, vector_malignancy)
+VECTORS = matrix(VECTORS, ncol = 3)
+colnames(VECTORS) = c('Tissue','Database','Malignancy')
 
 ### NORMALIZATION 
 ### FIN>
