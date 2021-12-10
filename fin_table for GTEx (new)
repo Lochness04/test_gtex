@@ -115,7 +115,7 @@ FIN$ensembl_gene_id = NULL
 colnames(FIN)= gsub('\\.[0-9]*$', '', colnames(FIN))
 colnames(FIN)= gsub('.', '-', fixed = T, colnames(FIN))
 
-### ASSIGN COLORS FOR PLOT AND CREATE VECTOR FOR TISSUE, DATABASE, MALIGNANCY
+### ASSIGN COLORS AND VECTORS FOR TISSUE, DATABASE, MALIGNANCY
 ### FIN>
 ### >COLORS, VECTORS
 
